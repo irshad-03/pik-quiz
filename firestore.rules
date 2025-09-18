@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Teachers collection rules
+    match /teachers/{userId} {
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Students collection rules
+    match /students/{userId} {
+      // Allow a student to create their own profile during registration
+      allow create: if request.auth != null && request.auth.uid == userId;
+      
+      // Allow a student to read, update, or delete their own profile
+      allow read, update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Quizzes collection rules
+    match /quizzes/{quizId} {
+      // Anyone can read a quiz
+      allow read: if request.auth != null;
+      
+      // Only a teacher who created the quiz can write to it
+      allow create: if request.auth != null && get(/databases/$(database)/documents/teachers/$(request.auth.uid)).data != null;
+      allow update, delete: if request.auth != null && request.auth.uid == resource.data.createdBy;
+    }
+    
+    // Scores collection rules
+    match /scores/{scoreId} {
+      // A student can only create their own score
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.studentUid;
+      
+      // A student can read their own score, and a teacher can read all scores
+      allow read: if request.auth != null && (request.auth.uid == resource.data.studentUid || get(/databases/$(database)/documents/teachers/$(request.auth.uid)).data != null);
+      
+      // Only a teacher can delete a score
+      allow delete: if request.auth != null && get(/databases/$(database)/documents/teachers/$(request.auth.uid)).data != null;
+    }
+  }
+}

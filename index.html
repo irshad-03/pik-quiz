@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PIK_QUIZ - Teacher & Student Portal</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <!-- Firebase Authentication -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Cloud Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- jsPDF for PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Background Animation -->
+    <div class="background-animation">
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+        <div class="bubble"></div>
+    </div>
+
+    <!-- Header Section -->
+    <header>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-brain"></i> PIK_QUIZ
+                </div>
+                
+                <nav>
+                    <ul>
+                        <li><a href="#" class="nav-link active" data-page="home"><i class="fas fa-home"></i> HOME</a></li>
+                        <li><a href="#" class="nav-link" data-page="teacher"><i class="fas fa-chalkboard-teacher"></i> TEACHER</a></li>
+                        <li><a href="#" class="nav-link" data-page="student"><i class="fas fa-user-graduate"></i> STUDENT</a></li>
+                        <li><a href="#" class="nav-link" data-page="about"><i class="fas fa-users"></i> ABOUT US</a></li>
+                    </ul>
+                </nav>
+                
+                <div class="auth-buttons">
+                    <button class="btn btn-outline" id="header-teacher-login">Teacher Login</button>
+                    <button class="btn btn-outline" id="header-student-login" style="display: none;">Student Login</button>
+                    <button class="btn btn-danger" id="logout-btn" style="display: none;">Logout</button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="container main-content">
+        <!-- Home Page -->
+        <div id="home-page" class="page active">
+            <!-- Animation Elements -->
+            <div class="floating-animation"></div>
+            <div class="floating-animation"></div>
+            <div class="floating-animation"></div>
+            <div class="floating-animation"></div>
+            
+            <!-- Hero Section -->
+            <section class="hero">
+                <h1>WELCOME TO PIK_QUIZ</h1>
+                <p>A platform for teachers to create quizzes and for students to test their knowledge while learning from their mistakes</p>
+            </section>
+            
+            <!-- Teacher Access Section -->
+            <section class="teacher-access">
+                <h2>FOR TEACHERS</h2>
+                <p style="text-align: center; margin-bottom: 20px;">Register or login to create quizzes and track student progress</p>
+                
+                <div class="access-options">
+                    <button class="btn btn-teacher" id="teacher-register-btn">Register as Teacher</button>
+                    <button class="btn btn-outline" id="teacher-login-btn">Teacher Login</button>
+                </div>
+            </section>
+
+            <!-- Student Access Section -->
+            <section class="teacher-access">
+                <h2>FOR STUDENTS</h2>
+                <p style="text-align: center; margin-bottom: 20px;">Register or login to take quizzes and view your results</p>
+                
+                <div class="access-options">
+                    <button class="btn btn-student" id="student-register-btn">Register as Student</button>
+                    <button class="btn btn-outline" id="student-login-btn">Student Login</button>
+                </div>
+            </section>
+        </div>
+        
+        <!-- Teacher Portal -->
+        <div id="teacher-page" class="page">
+            <section class="hero">
+                <h1>TEACHER PORTAL</h1>
+                <p>Create quizzes and view student scores</p>
+            </section>
+            
+            <!-- Teacher Login/Registration Form -->
+            <section class="form-container" id="teacher-auth-container">
+                <h2 class="form-title">Teacher Login / Registration</h2>
+                
+                <form id="teacher-auth-form">
+                    <div class="form-group">
+                        <label for="teacher-email">MAIL ID:</label>
+                        <input type="email" id="teacher-email" class="form-control" placeholder="teacher@example.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="teacher-password">PASSWORD:</label>
+                        <input type="password" id="teacher-password" class="form-control" placeholder="Your password" required>
+                    </div>
+                    
+                    <div class="form-group" id="teacher-name-field" style="display: none;">
+                        <label for="teacher-name">YOUR NAME (FOR REGISTRATION):</label>
+                        <input type="text" id="teacher-name" class="form-control" placeholder="Your Name">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-teacher" id="auth-button">LOGIN</button>
+                        <button type="button" class="btn btn-outline" id="toggle-teacher-register">NEW REGISTRATION</button>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- Teacher Dashboard -->
+            <section class="dashboard-container" id="teacher-dashboard" style="display: none;">
+                <h2 class="form-title">Teacher Dashboard</h2>
+                <p style="text-align: center; margin-bottom: 20px;">Welcome back, <span id="teacher-display-name"></span>!</p>
+                
+                <div class="dashboard-options">
+                    <div class="dashboard-card" id="create-quiz-btn">
+                        <i class="fas fa-plus-circle"></i>
+                        <h3>Create Quiz</h3>
+                        <p>Create a new quiz with questions and explanations</p>
+                    </div>
+                    
+                    <div class="dashboard-card" id="manage-quiz-btn">
+                        <i class="fas fa-tasks"></i>
+                        <h3>Manage Quiz</h3>
+                        <p>Edit or delete existing quizzes</p>
+                    </div>
+                    
+                    <div class="dashboard-card" id="view-scores-btn">
+                        <i class="fas fa-chart-bar"></i>
+                        <h3>View Scores</h3>
+                        <p>View student scores and performance</p>
+                    </div>
+
+                    <div class="dashboard-card" id="manage-teacher-account-btn">
+                        <i class="fas fa-user-cog"></i>
+                        <h3>Manage Account</h3>
+                        <p>Update your profile or delete account</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Create Quiz Section -->
+            <section class="quiz-form-container" id="create-quiz-section" style="display: none;">
+                <h2 class="form-title">Create New Quiz</h2>
+                
+                <form id="quiz-form">
+                    <div class="form-group">
+                        <label for="quiz-subject">Subject Name:</label>
+                        <input type="text" id="quiz-subject" class="form-control" placeholder="Enter subject name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quiz-time-limit">Time Limit (minutes):</label>
+                        <input type="number" id="quiz-time-limit" class="form-control" placeholder="Enter time limit" min="1" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quiz-expiry">Exam Expiry Date & Time:</label>
+                        <input type="datetime-local" id="quiz-expiry" class="form-control" required>
+                    </div>
+                    
+                    <div id="questions-container">
+                        <div class="question-container" data-question-id="1">
+                            <div class="form-group">
+                                <label>Question 1:</label>
+                                <input type="text" class="form-control question-text" placeholder="Enter question" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Options:</label>
+                                <div class="option-row">
+                                    <input type="text" class="form-control option-text" placeholder="Option 1" required>
+                                    <input type="radio" name="correct-answer-1" value="0" required> Correct
+                                </div>
+                                <div class="option-row">
+                                    <input type="text" class="form-control option-text" placeholder="Option 2" required>
+                                    <input type="radio" name="correct-answer-1" value="1" required> Correct
+                                </div>
+                                <div class="option-row">
+                                    <input type="text" class="form-control option-text" placeholder="Option 3">
+                                    <input type="radio" name="correct-answer-1" value="2"> Correct
+                                </div>
+                                <div class="option-row">
+                                    <input type="text" class="form-control option-text" placeholder="Option 4">
+                                    <input type="radio" name="correct-answer-1" value="3"> Correct
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Explanation:</label>
+                                <textarea class="form-control explanation" placeholder="Explanation for the correct answer" rows="3" required></textarea>
+                            </div>
+                            
+                            <button type="button" class="btn btn-danger remove-question" style="display: none;">Remove Question</button>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-outline" id="add-question-btn">Add Another Question</button>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-teacher">Create Quiz</button>
+                        <button type="button" class="btn btn-outline" id="back-to-dashboard">Back to Dashboard</button>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- Manage Quiz Section -->
+            <section class="dashboard-container" id="manage-quiz-section" style="display: none;">
+                <h2 class="form-title">Manage Quizzes</h2>
+                
+                <div id="quizzes-list">
+                    <p class="text-center">Loading quizzes...</p>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" id="back-to-dashboard-2">Back to Dashboard</button>
+                </div>
+            </section>
+            
+            <!-- View Scores Section -->
+            <section class="dashboard-container" id="view-scores-section" style="display: none;">
+                <h2 class="form-title">Student Scores</h2>
+                
+                <div class="form-group">
+                    <label for="quiz-select">Select Quiz:</label>
+                    <select id="quiz-select" class="form-control">
+                        <option value="">Loading quizzes...</option>
+                    </select>
+                </div>
+                
+                <div id="scores-container">
+                    <p class="text-center">Select a quiz to view scores</p>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-success" id="download-pdf">Download PDF Report</button>
+                    <button type="button" class="btn btn-outline" id="back-to-dashboard-3">Back to Dashboard</button>
+                </div>
+            </section>
+            
+            <!-- Teacher Account Management Section -->
+            <section class="dashboard-container" id="manage-teacher-account-section" style="display: none;">
+                <h2 class="form-title">Manage Your Account</h2>
+                
+                <form id="teacher-account-form">
+                    <div class="form-group">
+                        <label for="edit-teacher-name">FULL NAME:</label>
+                        <input type="text" id="edit-teacher-name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-teacher-email">EMAIL:</label>
+                        <input type="email" id="edit-teacher-email" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-teacher-password">NEW PASSWORD (leave blank to keep current):</label>
+                        <input type="password" id="edit-teacher-password" class="form-control">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-teacher">Update Profile</button>
+                        <button type="button" class="btn btn-danger" id="delete-teacher-account-btn">Delete Account</button>
+                        <button type="button" class="btn btn-outline" id="back-to-dashboard-from-teacher-account">Back to Dashboard</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+        
+        <!-- Student Portal -->
+        <div id="student-page" class="page">
+            <section class="hero">
+                <h1>STUDENT PORTAL</h1>
+                <p>Take quizzes and view your results</p>
+            </section>
+            
+            <!-- Student Authentication Form -->
+            <section class="form-container" id="student-auth-container">
+                <h2 class="form-title">Student Login / Registration</h2>
+                
+                <form id="student-auth-form">
+                    <div class="form-group">
+                        <label for="student-email">MAIL ID:</label>
+                        <input type="email" id="student-email" class="form-control" placeholder="student@example.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="student-password">PASSWORD:</label>
+                        <input type="password" id="student-password" class="form-control" placeholder="Your password" required>
+                    </div>
+                    
+                    <div class="form-group" id="student-reg-no-field" style="display: none;">
+                        <label for="student-reg-no">REGISTRATION NUMBER:</label>
+                        <input type="text" id="student-reg-no" class="form-control" placeholder="Your Registration Number" required>
+                    </div>
+                    
+                    <div class="form-group" id="student-name-field" style="display: none;">
+                        <label for="student-name">FULL NAME:</label>
+                        <input type="text" id="student-name" class="form-control" placeholder="Your Full Name" required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-student" id="auth-student-button">LOGIN</button>
+                        <button type="button" class="btn btn-outline" id="toggle-student-register">NEW REGISTRATION</button>
+                    </div>
+                </form>
+            </section>
+            
+            <!-- Student Dashboard -->
+            <section class="dashboard-container" id="student-dashboard" style="display: none;">
+                <h2 class="form-title">Student Dashboard</h2>
+                <p style="text-align: center; margin-bottom: 20px;">Welcome, <span id="student-display-name"></span>!</p>
+                
+                <div class="dashboard-options">
+                    <div class="dashboard-card" id="take-quiz-btn">
+                        <i class="fas fa-pen"></i>
+                        <h3>Take Quiz</h3>
+                        <p>Attempt a new quiz with an exam code</p>
+                    </div>
+                    
+                    <div class="dashboard-card" id="view-attempts-btn">
+                        <i class="fas fa-history"></i>
+                        <h3>View Attempts</h3>
+                        <p>Review your previous quiz attempts</p>
+                    </div>
+                    
+                    <div class="dashboard-card" id="manage-student-account-btn">
+                        <i class="fas fa-user-cog"></i>
+                        <h3>Manage Account</h3>
+                        <p>Update your profile or delete account</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Student Form for Quiz Entry -->
+            <section class="form-container" id="student-form-container" style="display: none;">
+                <h2 class="form-title">TAKE QUIZ</h2>
+                
+                <div class="form-group">
+                    <label>ENTER EXAM CODE:</label>
+                    <input type="text" id="exam-code" class="form-control" placeholder="Exam Code" required>
+                </div>
+                
+                <div class="form-group">
+                    <p style="color: var(--accent); font-weight: 600;">NOTE :</p>
+                    <p style="font-size: 14px; color: var(--dark);">Once you start the exam and once you attempted the exam you can't re-attend the exam. You can see your score and explanation for the wrong attempts of your exam.</p>
+                </div>
+                
+                <button class="btn btn-student" style="width: 100%;" id="start-quiz-btn">START QUIZ</button>
+                
+                <div class="form-actions" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-outline" id="back-to-student-dashboard">Back to Dashboard</button>
+                </div>
+            </section>
+
+            <!-- Quiz Taking Interface -->
+            <section class="quiz-taking-container" id="quiz-taking-section" style="display: none;">
+                <div class="quiz-header">
+                    <h2 id="quiz-subject-name">Subject Name</h2>
+                    <div class="quiz-info">
+                        <div class="timer-container">
+                            <i class="fas fa-clock"></i>
+                            <span id="quiz-timer">00:00</span>
+                        </div>
+                        <div class="question-counter">
+                            Question <span id="current-question">1</span> of <span id="total-questions">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-display">
+                    <h3 id="question-text">Question text goes here</h3>
+                    <div id="options-container" class="options-container">
+                        <!-- Options will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="quiz-navigation">
+                    <button class="btn btn-outline" id="prev-question-btn" disabled>Previous</button>
+                    <button class="btn btn-primary" id="next-question-btn">Next Question</button>
+                    <button class="btn btn-success" id="submit-quiz-btn" style="display: none;">Submit Quiz</button>
+                </div>
+            </section>
+
+            <!-- Quiz Results Section -->
+            <section class="quiz-results-container" id="quiz-results-section" style="display: none;">
+                <h2 class="form-title">Quiz Results</h2>
+                
+                <div class="results-summary">
+                    <h3>Subject: <span id="result-subject"></span></h3>
+                    <div class="score-display">
+                        Your Score: <span id="student-score">0</span> / <span id="max-score">0</span>
+                    </div>
+                    <p id="result-message"></p>
+                </div>
+
+                <div class="results-details">
+                    <h3>Question Review</h3>
+                    <div id="questions-review">
+                        <!-- Questions and answers will be inserted here -->
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn btn-outline" id="back-to-student-results-btn">Back to Dashboard</button>
+                    <button class="btn btn-success" id="download-explanation-btn">Download Explanation</button>
+                </div>
+            </section>
+            
+            <!-- Student Attempts History -->
+            <section class="dashboard-container" id="student-attempts-section" style="display: none;">
+                <h2 class="form-title">Your Quiz Attempts</h2>
+                
+                <div id="attempts-list">
+                    <p class="text-center">Loading your attempts...</p>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="btn btn-outline" id="back-to-student-dashboard-from-attempts">Back to Dashboard</button>
+                </div>
+            </section>
+            
+            <!-- Student Account Management Section -->
+            <section class="dashboard-container" id="manage-student-account-section" style="display: none;">
+                <h2 class="form-title">Manage Your Account</h2>
+                
+                <form id="student-account-form">
+                    <div class="form-group">
+                        <label for="edit-student-name">FULL NAME:</label>
+                        <input type="text" id="edit-student-name" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-student-email">EMAIL:</label>
+                        <input type="email" id="edit-student-email" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-student-reg-no">REGISTRATION NUMBER:</label>
+                        <input type="text" id="edit-student-reg-no" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-student-password">NEW PASSWORD (leave blank to keep current):</label>
+                        <input type="password" id="edit-student-password" class="form-control">
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-teacher">Update Profile</button>
+                        <button type="button" class="btn btn-danger" id="delete-student-account-btn">Delete Account</button>
+                        <button type="button" class="btn btn-outline" id="back-to-student-dashboard-from-account">Back to Dashboard</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+        
+        <!-- About Page -->
+        <div id="about-page" class="page">
+            <section class="hero">
+                <h1>ABOUT US</h1>
+                <p>Learn more about PIK_QUIZ and our mission to enhance learning through technology</p>
+            </section>
+            
+            <!-- Learning Explanation Section -->
+            <section class="learning-explanation">
+                <h2>LEARNING FROM MISTAKES</h2>
+                
+                <div class="explanation-content">
+                    <div class="explanation-animation">
+                        <div class="learning-visual">
+                            <div class="learning-visual-item">
+                                <i class="fas fa-question-circle" style="font-size: 60px; color: var(--primary);"></i>
+                            </div>
+                            <div class="learning-visual-item">
+                                <i class="fas fa-check-circle" style="font-size: 60px; color: var(--success);"></i>
+                            </div>
+                            <div class="learning-visual-item">
+                                <i class="fas fa-lightbulb" style="font-size: 60px; color: var(--warning);"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="explanation-text">
+                        <p>Our platform focuses on helping students learn from their mistakes by providing detailed explanations after each quiz attempt.</p>
+                        
+                        <div class="explanation-step">
+                            <div class="step-icon">
+                                <i class="fas fa-1"></i>
+                            </div>
+                            <div>Students take quizzes and complete exams</div>
+                        </div>
+                        
+                        <div class="explanation-step">
+                            <div class="step-icon">
+                                <i class="fas fa-2"></i>
+                            </div>
+                            <div>After submission, they receive immediate feedback</div>
+                        </div>
+                        
+                        <div class="explanation-step">
+                            <div class="step-icon">
+                                <i class="fas fa-3"></i>
+                            </div>
+                            <div>Detailed explanations are provided for incorrect answers</div>
+                        </div>
+                        
+                        <div class="explanation-step">
+                            <div class="step-icon">
+                                <i class="fas fa-4"></i>
+                            </div>
+                            <div>Students can review and learn from their mistakes</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="team-section">
+                <div class="team-member">
+                    <div class="member-img">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h3>Irshad</h3>
+                    <p>Founder & Developer</p>
+                    <p>Creator of PIK_QUIZ platform</p>
+                </div>
+            </section>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 PIK_QUIZ. All rights reserved. | Designed by Irshad</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
