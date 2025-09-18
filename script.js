@@ -21,7 +21,7 @@ function cleanupFirestore() {
 
 // Firebase configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyC0diM_-uiDp5TAei3FCmO1zSHb0IQ6fPU",
+    apiKey: " ",
     authDomain: "pik-quiz-platform.firebaseapp.com",
     projectId: "pik-quiz-platform",
     storageBucket: "pik-quiz-platform.firebasestorage.app",
