@@ -64,10 +64,15 @@ Security: Implemented granular Firestore Security Rules to ensure data privacy b
 Plaintext
 
 ├── index.html          # Main application structure and UI portals
+
 ├── script.js           # Core logic, Firebase integration, and state management
+
 ├── style.css           # Custom styling and glassmorphism UI effects
+
 ├── firebase.json       # Firebase deployment and rewrite configurations
+
 ├── firestore.rules     # Database security and access control logic
+
 └── firestore.indexes.json # Optimized query indexes for performance
 🔧 Installation & Setup
 Clone the repository:
